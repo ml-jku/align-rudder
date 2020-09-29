@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+
+    
+    <script async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
+    
+    
+    
+    <meta charset="UTF-8">
+
+<!-- Begin Jekyll SEO tag v2.6.1 -->
+<title>Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution | align-rudder-blog</title>
+<meta name="generator" content="Jekyll v3.9.0" />
+<meta property="og:title" content="Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Blog post" />
+<meta property="og:description" content="Blog post" />
+<link rel="canonical" href="http://localhost:4000/" />
+<meta property="og:url" content="http://localhost:4000/" />
+<meta property="og:site_name" content="align-rudder-blog" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-09-10T17:03:39+02:00" />
+<script type="application/ld+json">
+{"@type":"WebSite","datePublished":"2020-09-10T17:03:39+02:00","url":"http://localhost:4000/","description":"Blog post","headline":"Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution","name":"align-rudder-blog","dateModified":"2020-09-10T17:03:39+02:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="stylesheet" href="/assets/css/style.css?v=ffbf81a5f7176ff3b39fdf4c7ad2e9b01dc06fef">
+  </head>
+  <body>
+    
+    <header class="page-header" role="banner">
+      <h1 class="project-name">Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution</h1>
+      <h2 class="project-tagline">Blog post</h2>
+      
+        <a href="https://github.com/hofmarcher/align-rudder-blog" class="btn">View on GitHub</a>
+      
+      
+    </header>
+
+    <main id="content" class="main-content" role="main">
+      <link rel="stylesheet" href="assets/css/accordion.css" />
+
+<p>This blog post explains the paper <a href="https://arxiv.org/">Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution</a>.
+Align-RUDDER is <a href="https://arxiv.org/abs/1806.07857">RUDDER</a> with two modifications:</p>
+
+<ul>
+  <li>Align-RUDDER assumes that episodes with high rewards are given as demonstrations.</li>
+  <li>Align-RUDDER replaces the RUDDER’s LSTM model by a profile model that is obtained from multiple sequence alignment of demonstrations.</li>
+</ul>
+
+<p><a href="https://ml-jku.github.io/rudder">Blog post to RUDDER: Return Decomposition for Delayed Rewards</a></p>
+
+<h1 id="only-demonstrations-allow-to-solve-complex-tasks-in-reinforcement-learning">Only Demonstrations Allow to Solve Complex Tasks in Reinforcement Learning</h1>
+
+<p>Reinforcement learning (RL) can solve simple tasks efficiently.
+However, if tasks become more complex, e.g. consisting of hierarchical sub-tasks, RL requires a huge amount of samples.
+The reason is that for more complex tasks, episodes with high rewards are difficult to find by current exploration strategies.
+In contrast, humans and animals learn more efficiently by obtaining high reward episodes through teachers, role models, or prototypes. 
+We believe that in RL this approach can be followed by learning from demonstrations.
+In this context, we assume that episodes with high rewards are given as demonstrations and we are able to efficiently learn from as few as two episodes.</p>
+
+<p>DeepMind’s well known <a href="https://storage.googleapis.com/deepmind-media/alphago/AlphaGoNaturePaper.pdf">AlphaGO</a> also uses demonstrations for behavioral cloning (supervised learning of policy networks) and was able to win against the <a href="https://www.theguardian.com/technology/2016/mar/15/googles-alphago-seals-4-1-victory-over-grandmaster-lee-sedol">grandmaster Lee Sedol</a>.
+More recently, DeepMind’s <a href="https://deepmind.com/blog/article/alphastar-mastering-real-time-strategy-game-starcraft-ii">AlphaStar</a> StarCraft II agent was initialized by behavioral cloning (AlphaStar Supervised), i.e. trained with a <a href="https://twitter.com/oriolvinyalsml/status/1229489701574205441">large number of demonstrations</a> (human games) and managed similar <a href="https://www.nature.com/articles/d41586-019-03298-6">success stories</a> against professional human players.
+<img src="/assets/alphastar-imitation.jpg" alt="" />
+Therefore, we believe that demonstrations are essential when bringing RL to the real world where the relevant tasks are typically highly complex.</p>
+
+<h1 id="delayed-rewards-increase-the-complexity-of-tasks">Delayed Rewards Increase the Complexity of Tasks</h1>
+
+<p>Delayed rewards are often episodic or sparse and common in real-world problems.
+For real-world problems, reward for single actions is often not available, however, 
+episodic rewards are easy as it can be given for achieving a goal or for completing a task.
+Examples of episodic rewards are board games like chess or <a href="https://deepmind.com/research/case-studies/alphago-the-story-so-far">Go</a>.
+Delayed rewards require a long-term credit assignment, which is still a great challenge in reinforcement learning.
+<a href="https://arxiv.org/abs/1806.07857">RUDDER</a> excels in long-term credit assignment for delayed rewards applying the concepts of reward redistribution and return decomposition (for more information <a href="https://ml-jku.github.io/rudder">see RUDDER blog</a>).</p>
+
+<h1 id="rudder-deals-with-delayed-rewards-using-reward-redistribution">RUDDER Deals with Delayed Rewards Using Reward Redistribution</h1>
+
+<p>The main idea of RUDDER is to exploit the fact that the value function is a step function.
+Complex tasks are hierarchical and are composed of sub-tasks or sub-goals.
+Completing sub-tasks is reflected by a step in the value function.
+In this sense, steps indicate events like achievements, failures, and/or changes of environment/information.
+In general, a step in the value function is a change in return expectation (higher/lower amount of return or higher/lower probability to receive return).
+The reward can then be redistributed to these steps.
+In particular, identifying large steps is important since they speed up learning tremendously and results in:</p>
+
+<ul>
+  <li>Large increase of return (after adjusting the policy).</li>
+  <li>Sampling more relevant episodes.</li>
+</ul>
+
+<p>Assume we have episodes with high rewards and average rewards.
+Supervised learning identifies state-action pairs that are indicative for such high rewards.
+We therefore want to adjust the policy in a way that these state-action pairs are reached more often.
+The reward redistribution implemented by RUDDER achieves these state-action pair adjustments by using an <a href="http://karpathy.github.io/2015/05/21/rnn-effectiveness/">LSTM</a> to predict the final return at every timestep.
+Since the hidden state of the LSTM is able to store the history of events, we can focus on key events by computing the difference of predictions, which ultimately establish the contributions to the final return.</p>
+
+<div class="a-container">
+  <div class="a-items">
+    <label for="a1">Further details</label>
+    <input type="checkbox" name="ac" id="a1" hidden="" />
+    <div class="a-content">
+      
+      <p>To estimate the final return the LSTM uses return decomposition, which relies on pattern recognition.
+On the left side of the figure shown below, we illustrate a simple environment where an agent needs to collect a key to unlock a door and receive the treasure.</p>
+
+<p><img src="assets/rudder_details.png" alt="" /></p>
+
+<p>Such a step-function pattern could be detected by a feed-forward neural network (FNN) as shown in the middle section on the left side.
+The issue is that with a FNN the context information of <i>having a key</i> must be re-extracted in every state and training becomes much more difficult.
+In contrast, RUDDER uses an LSTM, which is able to store the information of <i>having a key</i> in its hidden state, such that it needs to extract this information only once in the state where the distinct event occurred.
+Afterwards this context information is only updated when the lock is opened as shown on the bottom left side.</p>
+
+<p>In the right section in the figure above we illustrate how the reward is redistributed according to the step-function.
+An inherent property of RUDDER is, that by identifying key events and redistributing the reward to them it also pushes the expected future reward towards zero.
+This considerably reduces the variance of the remaining return and, hence the estimations become more efficient.
+Zeroing the expected future reward and redistributing the reward is mathematically endorsed by introducing the concepts of return-equivalent decision processes, reward redistribution, return decomposition and optimal reward redistribution.
+One important contribution established by RUDDER was the introduction of the theoretically founded sequence-Markov decision processes (SDPs), which extend beyond the scope of Markov decision processes (MDPs).
+The definition of SDPs was thoroughly explained in the appendix of the RUDDER paper including proofs that show that the optimal policy remains unchanged.</p>
+
+    </div>
+  </div>
+</div>
+<p>For more about reward redistribution theory and its realization in RUDDER using LSTMs, <a href="https://ml-jku.github.io/rudder">see RUDDER blog</a>.</p>
+
+<h1 id="align-rudder-rudder-with-few-demonstrations-and-multiple-sequence-alignment">Align-RUDDER: RUDDER with Few Demonstrations and Multiple Sequence Alignment</h1>
+
+<p>Above in our setting, we have assumed complex tasks, where episodes with high rewards are given as demonstrations.
+To generate such demonstrations is often a tedious task for humans, and a
+time-consuming process for automated exploration strategies.
+Therefore, typically only a few demonstrations are available,
+on which RUDDER’s LSTM model as a deep learning method does not learn well.
+We have to find an alternative to RUDDER’s LSTM model for reward redistribution.
+Therefore, we replace RUDDER’s LSTM model by a profile model that is obtained from <a href="https://en.wikipedia.org/wiki/Multiple_sequence_alignment">multiple sequence alignment</a> (MSA) of demonstrations.
+Profile models can be constructed from as few as two demonstrations as known from bioinformatics and allow for reward redistribution.</p>
+
+<p>So now it’s time for Align-RUDDER, which is RUDDER with two major modifications:</p>
+<ul>
+  <li>RUDDER’s lessons replay buffer is replaced by (few) demonstrations</li>
+  <li>RUDDER’s LSTM model is replaced by a profile model obtained from MSA of demonstrations</li>
+</ul>
+
+<p>Of course, Align-RUDDER also works with many demonstrations. 
+Align-RUDDER inherits the concept of reward redistribution, which considerably reduces the delay of rewards, thus speeding up or enabling learning.</p>
+
+<h1 id="reward-redistribution-by-align-rudder-via-multiple-sequence-alignment">Reward Redistribution by Align-RUDDER via Multiple Sequence Alignment</h1>
+
+<p>In bioinformatics, sequence alignment identifies similarities between biological sequences of different species to determine their evolutionary relationship and conserved regions in different sequences.
+The underlying problem of this setting is much the same as identifying similarities between demonstrations from different players to determine their underlying strategy. As you can see, <strong>these two settings align nicely</strong>:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Sequences from different species sharing amino-acids•••• which conserve the biological function</code></li>
+  <li><code class="language-plaintext highlighter-rouge">Episodes• from different players sharing relevant events which conserve the underlying strategy</code></li>
+</ul>
+
+<p>The following figure shows, on the left, a multiple sequence alignment of biological sequences (triosephosphate isomerase) giving a conservation score. The right panel shows a multiple sequence alignment of demonstrations by different players (here, events have been encoded as amino acids to allow the use of the same tool for alignment).</p>
+
+<p style="text-align: center;"><img src="/assets/align-demo.png" alt="" /></p>
+
+<p>The alignment techniques in Align-RUDDER identify shared events that represent the underlying strategy.
+Reward is then redistributed to these shared events (for events see below).
+The more players share the same event the more reward is redistributed to this event.
+If an event is shared among all players this indicates achieving a sub-goal or completing a sub-task.
+The episodes from different players are what we call demonstrations.</p>
+
+<p>Consider one of the toy tasks from the paper. In this task, the environment is a simple grid world with four rooms.
+The agent starts in the center of the bottom left room and has to reach the goal in the bottom right room.
+At every location, the agent can move up, down, left and right (if there is no wall in the way).
+In the first room there is a portal at a random position that teleports the agent into the second room. 
+The portal is introduced to avoid that BC initialization alone solves the task.
+It enforces that going to the portal entry cells is learned, when they are at positions not observed in demonstrations.
+From the second room onwards the agent has to traverse the remaining rooms by going through the doors connecting them.
+Reward is only given at the end of the episode.
+The figure below shows an exemplary demonstration where the agent has reached the goal.</p>
+
+<p style="text-align: center;"><img src="/assets/fourrooms/demonstrations-raw.png" alt="" width="300px" /></p>
+
+<p>The <strong>reward redistribution of Align-RUDDER</strong> consists of the following five steps:</p>
+<ol>
+  <li>
+    <p><strong>Define events:</strong> 
+An alignment is only reliable if many equal (or similar) symbols are aligned.
+If there are many different symbols, the chance that 
+two sequences share the same symbols are small and aligning them gives an almost random result.
+Therefore, episodes should be described as sequences of events, where the number of events is small.
+These events can be the original state-action pairs or clusters thereof. 
+A sequence of events is obtained from a state-action sequence by substituting states or state-actions by their cluster identifier.
+In order to cluster state-actions, a similarity among or distance between them has to be computed.
+Consequently, we need a distance- or similarity matrix of the state-actions, or a vector-representation of them.
+A similarity matrix can for example be built via successor representation.</p>
+
+    <div class="a-container">
+   <div class="a-items">
+     <label for="a2">Successor Representation</label>
+     <input type="checkbox" name="sr" id="a2" hidden="" />
+     <div class="a-content">
+          
+       <p>In order to cluster states, a similarity measure between them is required. We suggest to use the “successor representation” <a href="http://www.gatsby.ucl.ac.uk/~dayan/papers/d93b.pdf">Dayan, 1993</a> of the states, which gives a similarity matrix based on how connected two states are given a policy. For computing the successor representation, we use the demonstrations combined with state-action sequences generated by a random policy. For high dimensional state spaces “successor features” <a href="https://papers.nips.cc/paper/6994-successor-features-for-transfer-in-reinforcement-learning.pdf">Barreto et al., 2017</a> can be used.</p>
+
+     </div>
+   </div>
+ </div>
+
+    <p>Possible clustering algorithms are amongst others affinity propagation (similarity-based) [<a href="https://science.sciencemag.org/content/315/5814/972.abstract">Frey and Dueck</a>] or hierarchical clustering (distance-based).</p>
+
+    <p>The figure below shows an examplified clustering for demonstration purpose.
+ Each color represents a cluster. The starting point (<img src="/assets/fourrooms/cl-0.png" alt="" width="15px" />), the goal (<img src="/assets/fourrooms/cl-8.png" alt="" width="15px" />), the traversing of each of the four rooms (<img src="/assets/fourrooms/cl-1.png" alt="" width="15px" />, <img src="/assets/fourrooms/cl-3.png" alt="" width="15px" />, <img src="/assets/fourrooms/cl-5.png" alt="" width="15px" />, <img src="/assets/fourrooms/cl-7.png" alt="" width="15px" />) and their respective doors/teleporters (<img src="/assets/fourrooms/cl-2.png" alt="" width="15px" />, <img src="/assets/fourrooms/cl-4.png" alt="" width="15px" />, <img src="/assets/fourrooms/cl-6.png" alt="" width="15px" />) are clusters. These are the important clusters indicating <strong>achieving sub-goals via completing sub-tasks</strong>.</p>
+
+    <p style="text-align: center;"><img src="/assets/fourrooms/events.png" alt="" width="300px" /></p>
+
+    <p>The figure below shows three demonstrations after clustering and assigning each event to their respective cluster identifier.</p>
+
+    <p style="text-align: center;"><img src="/assets/fourrooms/demonstrations-clustered.png" alt="" /></p>
+  </li>
+  <li>
+    <p><strong>Determine an alignment scoring scheme:</strong> The alignment algorithm requires a scoring system to distinguish similar events from dissimilar events. A scoring matrix \(\unicode{x1D54A}\) has entries \(\unicode{x1D564}_{i,j}\) that give the score for aligning event \(i\) with \(j\).</p>
+
+    <p>The total score \(S\) of a multiple sequence alignment is the sum of all pairwise scores:</p>
+
+\[S = \sum_{i,j,i&lt;j} \sum_{t=0}^L \unicode{x1D564}_{x_{i,t},x_{j,t}} \ ,\]
+
+    <p>where \(x_{i,t}\) and \(x_{j,t}\) are events at position \(t\) in the alignment for the sequences \(\tau_i\) and \(\tau_j\), respectively. \(L\) is the alignment length.</p>
+
+    <p>In the alignment, events should have the same probability of being aligned as they would have if we knew the strategy and aligned demonstrations accordingly. The <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC53667">theory of high scoring segments</a> allows us to derive such a scoring scheme.</p>
+
+    <p>A priori, we only know that a relevant event should be aligned to itself, while we do not know which events are relevant.
+ Furthermore, events occuring with low probability receive a higher score when being aligned to themselves (a match with very low probability to be observed randomly). 
+ Prior knowledge can also be incorporated in the construction of the scoring matrix. 
+ Such prior knowledge could be that two events are interchangeable, and therefore the corresponding entry for a match between them in the scoring matrix would be high allowing the MSA algorithm to align these events.</p>
+
+    <div class="a-container">
+   <div class="a-items">
+     <label for="a3">Construction of Scoring Matrix</label>
+     <input type="checkbox" name="a3" id="a3" hidden="" />
+     <div class="a-content">
+          
+       <p>An alignment algorithm maximizes the total score \(S\) and, thereby, aligns events \(i\) and \(j\) with probability \(q_{ij}\).<br />
+High values of \(q_{ij}\) means that the algorithm often aligns events \(i\) and \(j\) using the scoring matrix \(\unicode{x1D54A}\) with entries \(\unicode{x1D564}_{i,j}\).<br />
+According to Theorem 2 and Equation [3] in <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC53667">this paper</a>, asymptotically with the sequence length, we have<br />
+\(\unicode{x1D564}_{i,j} = \frac{\ln(\frac{q_{ij}}{(p_i \ p_j)})}{\lambda^*}\)<br />
+where \(\lambda^*\) is the single unique positive root of \(\sum_{i=1,j=1}^{n,n} p_i p_j \exp(\lambda \unicode{x1D564}_{i,j}) =1\) (Equation [4] in <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC53667">this paper</a>).<br />
+We now can choose a desired probability \(q_{ij}\) and then
+compute the scoring matrix \(\unicode{x1D54A}\) with entries \(\unicode{x1D564}_{i,j}\). High values of \(q_{ij}\) should indicate relevant events for the strategy.<br />
+A priori, we only know that a relevant event should
+be aligned to itself, while we do now know which events are
+relevant.<br />
+Therefore we set \(q_{ij}\) to large values for every \(i=j\) 
+and to low values for \(i\not=j\).
+Concretely, we set
+\(q_{ij}=p_i-\epsilon\) for \(i=j\) and \(q_{ij}=\epsilon/(n-1)\) for \(i\not=j\),
+where \(n\) is the number of different possible events.
+Events with smaller \(p_i\)
+receive a higher score \(\unicode{x1D564}_{i,i}\) when aligned to themselves since
+this is seldom observed randomly.</p>
+
+     </div>
+   </div>
+ </div>
+
+    <p>The following figure shows a scoring matrix for our toy task, without including any prior knowledge. 
+ We get high scores on the diagonal (i.e. aligning only the same events) and low scores everywhere else. 
+ Furthermore, rare events, such as going through the doors or teleporters, get higher values making it more likely that they are aligned.</p>
+
+    <p style="text-align: center;"><img src="/assets/fourrooms/scoring-matrix.png" alt="" /></p>
+  </li>
+  <li>
+    <p><strong>Perform MSA:</strong> MSA first produces pairwise alignments between all demonstrations. Afterwards, a guiding tree is produced via hierarchical clustering, which clusters the sequences according to their pairwise alignment scores. Demonstrations which follow the same strategy appear in the same cluster in the guiding tree. Each cluster is aligned separately via MSA to address different strategies. In our example we use <a href="http://www.clustal.org/clustal2/">ClustalW</a> but other MSA methods can be used as well.</p>
+
+    <p>There are two important parameters to MSA we didn’t discuss until now but only hinted at, namely gap-open and gap-extention pentalties. We set these to zero so only the scoring matrix \(\unicode{x1D54A}\) determines the alignment.</p>
+  </li>
+  <li>
+    <p><strong>Compute the profile model and the PSSM:</strong> From the alignment we get the following: (a) an MSA profile matrix with column-wise event frequencies and (b) a position-specific scoring matrix (PSSM) which is used for aligning new sequences to the profile.</p>
+
+    <p>The figure below shows how our three demonstrations are aligned with the above scoring matrix. You can see, that <strong>only the same events are aligned, otherwise a gap is inserted</strong>. 
+ In this example the “door” or “teleport arrival” events align nicely which is what we would expect. From this alignment it can easily be seen that there are four sub-tasks to solve (an event shared by all aligned demonstrations and having low probability), i.e. traversing each room and entering the respective door or teleporter (which corresponds to reaching the goal in the last room).</p>
+
+    <p style="text-align: center;"><img src="/assets/fourrooms/msa-profile-pssm.png" alt="" /></p>
+  </li>
+  <li>
+    <p><strong>Redistribute the reward:</strong>  Our reward redistribution is based on the profile model. A sequence \(\tau=e_{0:T}\) (\(e_t\) is an event at position \(t\))
+can be aligned to the profile, 
+giving the score \(S(\tau) = \sum_{t=0}^L \unicode{x1D564}_{x_t,t}\), 
+where \(\unicode{x1D564}_{i,t}\) is the alignment score for event \(i\) at position \(t\),
+\(x_t\) is the event at position \(t\) of sequence \(\tau\) in the 
+alignment, and \(L\) is the profile length. Note that \(L \geq T\) and \(x_t \not= e_t\), since gaps are present in the alignment. The redistributed reward is proportional to the difference of scores of two consecutive events based on the PSSM, i.e. the reward for \(R_{t+1}\) is redistributed according to the following equation (where \(C\) is just a normalization constant):</p>
+
+\[R_{t+1} = \left( S(\tau_t) - S(\tau_{t-1}) \right) \ C\]
+
+    <div class="a-container">
+   <div class="a-items">
+     <label for="a4">Reward Redistribution</label>
+     <input type="checkbox" name="rr" id="a4" hidden="" />
+     <div class="a-content">
+          
+       <p>If \(\tau_t=e_{0:t}\) is the prefix sequence of \(\tau\) of length \(t+1\),
+then the reward redistribution is<br />
+\(R_{t+1} = \left( S(\tau_t) - S(\tau_{t-1}) \right) \ C
+ \ = \ g((s,a)_{0:t}) - g((s,a)_{0:t-1})\),<br />
+\(R_{T+2} \ = \ \tilde{G}_0 \ - \ \sum_{t=0}^T R_{t+1}\),<br />
+\(C = \frac{E_{\mathrm{demo}} \left[\tilde{G}_0 \right]}{E_{\mathrm{demo}} \left[ \sum_{t=0}^T S(\tau_t) \ - \ S(\tau_{t-1}) \right] }\)<br />
+where \(\tilde{G}_0=\sum_{t=0}^T\tilde{R}_{t+1}\) 
+is the original return of the sequence \(\tau\) and \(S(\tau_{-1})=0\). 
+\(E_{\mathrm{demo}}\) is the expectation over demonstrations,
+and \(C\) scales \(R_{t+1}\) to the range of \(\tilde{G}_0\). 
+\(R_{T+2}\) is the correction reward (see RUDDER paper), 
+with zero expectation for demonstrations:<br />
+\(E_{\mathrm{demo}} \left[ R_{T+2}\right] = 0\).<br />
+Since \(\tau_t=e_{0:t}\) and \(e_t=f(s_t,a_t)\), we can set
+\(g((s,a)_{0:t})=S(\tau_t) C\).<br />
+We ensured strict return equivalence, since
+\(G_0=\sum_{t=0}^{T+1} R_{t+1} = \tilde{G}_0\).<br />
+The redistributed reward depends only on the past,
+that is, \(R_{t+1}=h((s,a)_{0:t})\).<br />
+For computational efficiency, the profile alignment of \(\tau_{t-1}\)
+can be extended to a profile alignment for \(\tau_t\) like exact matches are 
+extended to high-scoring sequence pairs with the <a href="http://cs.brown.edu/courses/csci1810/resources/ch1_readings/Basic_local_alignment_search_tool.pdf">BLAST algorithm</a>.</p>
+
+     </div>
+   </div>
+ </div>
+
+    <p>A new sequence is aligned to the profile, then the score for each event is calculated as the sum of scores up to, and including, this event (as seen in the figure below). The redistributed reward is then the difference of scores of two consecutive sub-sequences \(\tau_{t-1}\) and \(\tau_{t}\)  aligned to the profile.</p>
+    <p style="text-align: center;"><img src="/assets/fourrooms/redistribution-score.png" alt="" /></p>
+
+    <p>The figure below shows the final reward redistribution.</p>
+
+    <p style="text-align: center;"><img src="/assets/fourrooms/redistribution.png" alt="" /></p>
+  </li>
+</ol>
+
+<h1 id="comparison-on-a-grid-world-of-align-rudder-and-competitors-for-learning-on-few-demonstrations">Comparison on a Grid World of Align-RUDDER and Competitors for Learning on Few Demonstrations</h1>
+
+<p>Align-RUDDER is compared to Behavioral Cloning with \(Q\)-learning (BC+\(Q\)) and
+<a href="https://arxiv.org/abs/1704.03732">Deep \(Q\)-learning from Demonstrations (DQfD)</a>.
+<a href="https://papers.nips.cc/paper/6391-generative-adversarial-imitation-learning.pdf">GAIL</a>, 
+which has been designed for control in continuous observation spaces, 
+failed to solve the two artificial tasks, 
+as reported previously for similar tasks in <a href="https://arxiv.org/abs/1905.11108">SQIL</a>.
+In addition to the above setting with four rooms we also performed experiments with eight rooms.
+Other than the number of rooms both tasks are the same.
+An episode ends after 200 time steps or when the agent reaches the goal.
+To enforce that the agent reaches the goal with the fewest steps possible,
+we reduce the final reward for every time step the agent needed to get to the goal.</p>
+
+<p>The plots below shows the number of episodes to achieve 80% of the average reward of the demonstrations vs. the number of demonstrations averaged over 100 trials.</p>
+
+<p style="text-align: center;"><img src="/assets/results/fourrooms.png" alt="" width="400px" /> <img src="/assets/results/eightrooms.png" alt="" width="400px" /></p>
+
+<p>Align-RUDDER significantly outperforms all other methods, in particular with few demonstrations.</p>
+
+<h1 id="align-rudder-evaluated-on-minecraft">Align-RUDDER Evaluated on Minecraft</h1>
+
+<p>We tested Align-RUDDER on the very challenging MineRL NeurIPS Competition task (<i>ObtainDiamond</i>) where a reinforcement learning agent has to navigate through the complex 3D, first-person, Minecraft environment to collect a diamond.
+Episodes end due to the agent dying, successfully obtaining a diamond, or reaching the maximum step count of 18,000 frames (15 minutes).
+An agent needs to solve several sub-tasks to reach its goal.
+The observation space of an agent consists of visual input and player inventory and attributes.
+The action space consists of the Cartesian product of continuous view adjustment (turning and pitching), binary movement commands (left/right, forward/backward), and discrete actions for placing blocks, crafting items, smelting items, and mining/hitting enemies.
+The primary goal of the competition is to foster the development of algorithms which can efficiently leverage human demonstrations to drastically reduce the number of samples needed to solve complex, hierarchical, and sparse environments [<a href="https://arxiv.org/abs/1904.10079">Guss et al.</a>].
+Participants need to obtain a diamond within 8,000,000 samples in less than four days using hardware no more powerful than a NG6v2 instance (<a href="https://www.aicrowd.com/challenges/neurips-2019-minerl-competition">AIcrowd MineRL Competition</a>).
+This challenge was first introduced in 2019 and none of the participants was able to collect a diamond (<a href="https://www.bbc.com/news/technology-50720823">BBC News report</a>).
+Since Reinforcement learning algorithms struggle with learning tasks that have sparse and delayed rewards, participants struggled to find a solution although they relied on state-of-the-art methods, i.e. Deep Q-learning from Demonstrations (DQfD) [<a href="https://arxiv.org/abs/1704.03732">Hester et al.</a>].</p>
+
+<p>We didn’t use the intermediate rewards given by achieving sub-goals from the challenge, since our method is supposed to discover such sub-goals via redistributing reward to them.
+We only give reward for collecting the diamond.</p>
+
+<p>With Align-RUDDER we tackled the <i>ObtainDiamond</i> task and managed to collect a diamond in 0.1% of the time over multiple runs and seeds with similar constrains as proposed by the challenge organizers.
+To put this in context, if one splits the <i>ObtainDiamond</i> task into 31 sub-tasks and assign a 50% success rate to each task, the resulting success probability to collect a diamond is approximately \(4.66 \times 10^{-10}\).
+This is an one in two billion chance of success.
+In comparison, our method performs two million times better.</p>
+
+<p>The 31 sub-tasks include collecting log, crafting planks or smelting iron ingots and were extracted from the provided human demonstrations, not hard-coded.
+The sub-tasks emerged by aligning the players inventory items and are extracted from the resulting profile model.
+In the case of Minecraft the profile model already determines a sequence of achievable sub-goals and consiquently reward can be redistributed uniformly.
+For each unique sub-task we then train an agent and select between the corresponding agents according to the profile model.
+In the following figure we illustrate an overview of a profile model based on human demonstrations using the player inventory.</p>
+
+<p><img src="/assets/minecraft_alignment.png" alt="" /></p>
+
+<p>In the following video we summarize the main aspects of tackling the <i>ObtainDiamond</i> task by Align-RUDDER.</p>
+
+<iframe width="720" height="420" src="https://www.youtube.com/embed/HO-_8ZUl-UY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="" style="text-align: center;"></iframe>
+
+<h2 id="material">Material</h2>
+<p>Paper: <a href="https://arxiv.org/">Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution</a><br />
+Github repo: <a href="https://github.com/ml-jku/align-rudder">Align-RUDDER</a>
+Paper: <a href="https://arxiv.org/abs/1806.07857">RUDDER: Return Decomposition for Delayed Rewards</a><br />
+Blog: <a href="https://ml-jku.github.io/rudder">RUDDER: Return Decomposition for Delayed Rewards</a><br />
+Music: <a href="https://freemusicarchive.org/music/Scott_Holmes/Inspiring__Upbeat_Music/Scott_Holmes_-_Upbeat_Party">Scott Holmes - Upbeat Party</a> (CC0 license)</p>
+
+<h2 id="correspondence">Correspondence</h2>
+<p>This blog post was written by <a href="https://www.jku.at/en/institute-for-machine-learning/about-us/team/markus-hofmarcher/">Markus Hofmarcher</a> and <a href="https://www.jku.at/institut-fuer-machine-learning/ueber-uns/team/dipl-ing-marius-constantin-dinu-bsc/">Marius-Constantin Dinu</a>.<br />
+Contributions by Vihang Patil, José Arjona-Medina, Johannes Brandstetter and Sepp Hochreiter.</p>
+
+
+      <footer class="site-footer">
+        
+          <span class="site-footer-owner"><a href="https://github.com/hofmarcher/align-rudder-blog">align-rudder-blog</a> is maintained by <a href="https://github.com/hofmarcher">hofmarcher</a>.</span>
+        
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a>.</span>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,3 +1,23 @@
+# Align-RUDDER: Learning From Few Demonstrations by Reward Redistribution
+_Vihang P. Patil<sup>1</sup>,
+Markus Hofmarcher<sup>1</sup>,
+Markus-Constantin Dinu<sup>1</sup>,
+Matthias Dorfer<sup>3</sup>,
+Patrick M. Blies<sup>3</sup>,
+Johannes Brandstetter<sup>1</sup>,
+Jose A. Arjona-Medina<sup>1</sup>,
+Sepp Hochreiter<sup>1, 2</sup>_
+
+<sup>1</sup> ELLIS Unit Linz and LIT AI Lab, Institute for Machine Learning, Johannes Kepler University Linz, Austria  
+<sup>2</sup> Institute of Advanced Research in Artificial Intelligence (IARAI)  
+<sup>3</sup> enliteAI, Vienna, Austria
+
+---
+
+##### Detailed blog post on this paper at [this link](https://ml-jku.github.io/align-rudder) and a video showcasing the MineCraft agent at [this link](https://www.youtube.com/watch?v=HO-_8ZUl-UY).
+
+---
+
 # Implementation of Align-RUDDER 
 This package contains an implementation of Align-RUDDER together with code to reproduce
 the results of artificial tasks I & II as stated in the paper. 

@@ -298,7 +298,7 @@ In the following video we summarize the main aspects of tackling the <i>ObtainDi
 
 ## Material
 Paper: [Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution](https://arxiv.org/abs/1806.07857)  
-Github repo: [Align-RUDDER](https://github.com/ml-jku/align-rudder)
+Github repo: [Align-RUDDER](https://github.com/ml-jku/align-rudder)  
 Paper: [RUDDER: Return Decomposition for Delayed Rewards](https://arxiv.org/abs/1806.07857)  
 Blog: [RUDDER: Return Decomposition for Delayed Rewards](https://ml-jku.github.io/rudder)  
 Music: [Scott Holmes - Upbeat Party](https://freemusicarchive.org/music/Scott_Holmes/Inspiring__Upbeat_Music/Scott_Holmes_-_Upbeat_Party) (CC0 license)

@@ -18,6 +18,8 @@ Sepp Hochreiter<sup>1, 2</sup>_
 
 ---
 
+The full paper is available at [https://arxiv.org/abs/2009.14108](https://arxiv.org/abs/2009.14108)
+
 # Implementation of Align-RUDDER 
 This package contains an implementation of Align-RUDDER together with code to reproduce
 the results of artificial tasks I & II as stated in the paper. 
@@ -41,12 +43,12 @@ FourRooms and EightRooms environments and the respective method.
 python align_rudder/run_four_alignrudder.py
 python align_rudder/run_eight_alignrudder.py
 ```  
-**Behavioral Cloning + Q-Learning**  
+**Behavioral Cloning + Q-Learning**
 ```  
 python align_rudder/run_four_bc.py
-python align_rudder/run_eight_bc.py     
+python align_rudder/run_eight_bc.py
 ```  
-**DQFD (Deep Q-Learning from Demonstrations)**  
+**DQFD (Deep Q-Learning from Demonstrations)**
 ```  
 python align_rudder/run_four_dqfd.py
 python align_rudder/run_eight_dqfd.py

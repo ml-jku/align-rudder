@@ -161,11 +161,11 @@ A similarity matrix can for example be built via successor representation.
     ![](assets/fourrooms/demonstrations-clustered.png)
     {: refdef}
 
-1. **Determine an alignment scoring scheme:** The alignment algorithm requires a scoring system to distinguish similar events from dissimilar events. A scoring matrix $$\unicode{x1D54A}$$ has entries $$\unicode{x1D564}_{i,j}$$ that give the score for aligning event $$i$$ with $$j$$.
+2. **Determine an alignment scoring scheme:** The alignment algorithm requires a scoring system to distinguish similar events from dissimilar events. A scoring matrix $$\unicode{x1D54A}$$ has entries $$\unicode{x1D564}_{i,j}$$ that give the score for aligning event $$i$$ with $$j$$.
 
-    The total score $$S$$ of a multiple sequence alignment is the sum of all pairwise scores: 
+    The MSA score $$S_{\mathrm{MSA}}$$ of a multiple sequence alignment is the sum of all pairwise scores: 
 
-    $$S = \sum_{i,j,i<j} \sum_{t=0}^L \unicode{x1D564}_{x_{i,t},x_{j,t}} \ ,$$ 
+    $$S_{\mathrm{MSA}} = \sum_{i,j,i<j} \sum_{t=0}^L \unicode{x1D564}_{x_{i,t},x_{j,t}} \ ,$$ 
     
     where $$x_{i,t}$$ and $$x_{j,t}$$ are events at position $$t$$ in the alignment for the sequences $$\tau_i$$ and $$\tau_j$$, respectively. $$L$$ is the alignment length.
 
@@ -195,11 +195,11 @@ A similarity matrix can for example be built via successor representation.
     ![](assets/fourrooms/scoring-matrix.png)
     {: refdef}
 
-2. **Perform MSA:** MSA first produces pairwise alignments between all demonstrations. Afterwards, a guiding tree is produced via hierarchical clustering, which clusters the sequences according to their pairwise alignment scores. Demonstrations which follow the same strategy appear in the same cluster in the guiding tree. Each cluster is aligned separately via MSA to address different strategies. In our example we use [ClustalW](http://www.clustal.org/clustal2/) but other MSA methods can be used as well. 
+3. **Perform MSA:** MSA first produces pairwise alignments between all demonstrations. Afterwards, a guiding tree is produced via hierarchical clustering, which clusters the sequences according to their pairwise alignment scores. Demonstrations which follow the same strategy appear in the same cluster in the guiding tree. Each cluster is aligned separately via MSA to address different strategies. In our example we use [ClustalW](http://www.clustal.org/clustal2/) but other MSA methods can be used as well. 
 
     There are two important parameters to MSA we didn't discuss until now but only hinted at, namely gap-open and gap-extention pentalties. We set these to zero so only the scoring matrix $$\unicode{x1D54A}$$ determines the alignment.
 
-3. **Compute the profile model and the PSSM:** From the alignment we get the following: (a) an MSA profile matrix with column-wise event frequencies and (b) a position-specific scoring matrix (PSSM) which is used for aligning new sequences to the profile. 
+4. **Compute the profile model and the PSSM:** From the alignment we get the following: (a) an MSA profile matrix with column-wise event frequencies and (b) a position-specific scoring matrix (PSSM) which is used for aligning new sequences to the profile. 
 
     The figure below shows how our three demonstrations are aligned with the above scoring matrix. You can see, that **only the same events are aligned, otherwise a gap is inserted**. 
     In this example the "door" or "teleport arrival" events align nicely which is what we would expect. From this alignment it can easily be seen that there are four sub-tasks to solve (an event shared by all aligned demonstrations and having low probability), i.e. traversing each room and entering the respective door or teleporter (which corresponds to reaching the goal in the last room).
@@ -208,7 +208,7 @@ A similarity matrix can for example be built via successor representation.
     ![](assets/fourrooms/msa-profile-pssm.png)
     {: refdef}
 
-4. **Redistribute the reward:**  Our reward redistribution is based on the profile model. A sequence $$\tau=e_{0:T}$$ ($$e_t$$ is an event at position $$t$$)
+5. **Redistribute the reward:**  Our reward redistribution is based on the profile model. A sequence $$\tau=e_{0:T}$$ ($$e_t$$ is an event at position $$t$$)
 can be aligned to the profile, 
 giving the score $$S(\tau) = \sum_{t=0}^L \unicode{x1D564}_{x_t,t}$$, 
 where $$\unicode{x1D564}_{i,t}$$ is the alignment score for event $$i$$ at position $$t$$,

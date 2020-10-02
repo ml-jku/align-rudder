@@ -1,4 +1,4 @@
-An alignment algorithm maximizes the total score $$S$$ and, thereby, aligns events $$i$$ and $$j$$ with probability $$q_{ij}$$.  
+An alignment algorithm maximizes the MSA score $$S_{\mathrm{MSA}}$$ and, thereby, aligns events $$i$$ and $$j$$ with probability $$q_{ij}$$.  
 High values of $$q_{ij}$$ means that the algorithm often aligns events $$i$$ and $$j$$ using the scoring matrix $$\unicode{x1D54A}$$ with entries $$\unicode{x1D564}_{i,j}$$.  
 According to Theorem 2 and Equation \[3\] in [this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC53667), asymptotically with the sequence length, we have  
 $$\unicode{x1D564}_{i,j} = \frac{\ln(\frac{q_{ij}}{(p_i \ p_j)})}{\lambda^*}$$  

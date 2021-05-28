@@ -57,6 +57,8 @@ def collect_results(results_dir="results"):
     run_params = [
         {"run_dir": os.path.join(results_dir, "eight_rooms_alignrudder"), "method": "Align-RUDDER", "log_type": "npy"},
         {"run_dir": os.path.join(results_dir, "four_rooms_alignrudder"), "method": "Align-RUDDER", "log_type": "npy"},
+        {"run_dir": os.path.join(results_dir, "eight_rooms_rudderlstm"), "method": "RUDDER (LSTM)", "log_type": "npy"},
+        {"run_dir": os.path.join(results_dir, "four_rooms_rudderlstm"), "method": "RUDDER (LSTM)", "log_type": "npy"},
         {"run_dir": os.path.join(results_dir, "four_rooms_bc"), "method": "BC + Q-Learning", "log_type": "npy"},
         {"run_dir": os.path.join(results_dir, "eight_rooms_bc"), "method": "BC + Q-Learning", "log_type": "npy"},
         {"run_dir": os.path.join(results_dir, "eight_rooms_dqfd"), "method": "DQfD", "log_type": "npy"},

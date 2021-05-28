@@ -53,6 +53,11 @@ python align_rudder/run_eight_bc.py
 python align_rudder/run_four_dqfd.py
 python align_rudder/run_eight_dqfd.py
 ```  
+**RUDDER (LSTM)**
+```  
+python align_rudder/run_four_rudder_lstm.py
+python align_rudder/run_eight_rudder_lstm.py
+```  
 
 ## Results
 Once you ran all experiments you are interested in you can run the following script to get 

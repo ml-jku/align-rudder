@@ -7,6 +7,7 @@ usemathjax: true
 ---
 
 <link rel="stylesheet" href="assets/css/accordion.css">
+UPDATE: [Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution](https://arxiv.org/abs/2009.14108) has been accepted for a long presentation at Internatioal Conference on Machine Learning (ICML), 2022. 
 
 This blog post explains the paper [Align-RUDDER: Learning from Few Demonstrations by Reward Redistribution](https://arxiv.org/abs/2009.14108).
 Align-RUDDER is [RUDDER](https://arxiv.org/abs/1806.07857) with two modifications:

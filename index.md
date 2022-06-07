@@ -278,6 +278,26 @@ Since Reinforcement learning algorithms struggle with learning tasks that have s
 We didn't use the intermediate rewards given by achieving sub-goals from the challenge, since our method is supposed to discover such sub-goals via redistributing reward to them.
 We only give reward for collecting the diamond.
 
+Following are the five steps of Align-RUDDER applied to Minecraft:
+
+![](assets/minecraft/five_steps_1_events_demos.png)
+Step \textbf{(I)}: Define events and map demonstrations into sequences of events. First, we extract the sequence of states from human demonstrations, transform images into 
+feature vectors using a pre-trained network and transform them into a sequence of consecutive state deltas (concatenating image feature vectors and inventory states). We cluster the resulting state deltas and remove clusters with a large number of members and merge smaller clusters. In the case of demonstrations for the \textit{ObtainDiamond} task in Minecraft the resulting clusters correspond to obtaining specific resources and items required to solve the task.
+Then we map the demonstrations to sequences of events.
+
+![](assets/minecraft/five_steps_2_scoring.png)
+Step \textbf{(II)}: Construct a scoring matrix using event probabilities from demonstrations for diagonal elements and setting off-diagonal to a constant value. The scores in the diagonal position are proportional to the inverse of the event frequencies. Thus, aligning rare events has higher score. Darker colors signify higher score values.
+
+![](assets/minecraft/five_steps_3_msa.png)
+Step \textbf{(III)} Perform multiple sequence alignment (MSA) of the demonstrations. The MSA algorithm maximizes the pairwise sum of scores of all alignments. The score of an alignment at each position is given by the scoring matrix. As the off-diagonal entries are negative, the algorithm will always try to align an event to itself, while giving preference to events which give higher scores. 
+
+![](assets/minecraft/five_steps_4_pssm.png)
+Step \textbf{(IV)} Compute a position-specific scoring matrix (PSSM). This matrix can be computed using the MSA (Step (III)) and the scoring matrix (Step (II)). Every column entry is for a position from the MSA. The score at a position (column) and for an event (row) depends on the frequency of that event at that position in the MSA. For example, the event in the last position is present in all the sequences, and thus gets a high score at the last position. But it is absent in the remaining position, and thus gets a score of zero elsewhere.
+
+![](assets/minecraft/five_steps_5_redistribution.png)
+Step \textbf{(V)} A new sequence is aligned step by step to the profile model using the PSSM, resulting in an alignment score for each sub-sequence. The redistributed reward is then proportional to the difference of scores of subsequent alignments.
+
+
 With Align-RUDDER we tackled the <i>ObtainDiamond</i> task and managed to collect a diamond in 0.1% of the time over multiple runs and seeds with similar constrains as proposed by the challenge organizers.
 To put this in context, if one splits the <i>ObtainDiamond</i> task into 31 sub-tasks and assign a 50% success rate to each task, the resulting success probability to collect a diamond is approximately $$4.66 \times 10^{-10}$$.
 This is an one in two billion chance of success.
@@ -288,13 +308,6 @@ The sub-tasks emerged by aligning the players inventory items and are extracted 
 In the case of Minecraft the profile model already determines a sequence of achievable sub-goals and consiquently reward can be redistributed uniformly.
 For each unique sub-task we then train an agent and select between the corresponding agents according to the profile model.
 In the following figure we illustrate an overview of a profile model based on human demonstrations using the player inventory.
-
-![](assets/minecraft/five_steps_1_events_demos.png)
-![](assets/minecraft/five_steps_2_scoring.png)
-![](assets/minecraft/five_steps_3_msa.png)
-![](assets/minecraft/five_steps_4_pssm.png)
-![](assets/minecraft/five_steps_5_redistribution.png)
-
 In the following video we summarize the main aspects of tackling the <i>ObtainDiamond</i> task by Align-RUDDER.
 
 {:refdef: style="text-align: center;"}

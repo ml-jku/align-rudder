@@ -289,7 +289,11 @@ In the case of Minecraft the profile model already determines a sequence of achi
 For each unique sub-task we then train an agent and select between the corresponding agents according to the profile model.
 In the following figure we illustrate an overview of a profile model based on human demonstrations using the player inventory.
 
-![](assets/minecraft_alignment.png)
+![](assets/minecraft/five_steps_1_events_demos.png)
+![](assets/minecraft/five_steps_2_scoring.png)
+![](assets/minecraft/five_steps_3_msa.png)
+![](assets/minecraft/five_steps_4_pssm.png)
+![](assets/minecraft/five_steps_5_redistribution.png)
 
 In the following video we summarize the main aspects of tackling the <i>ObtainDiamond</i> task by Align-RUDDER.
 

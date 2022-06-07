@@ -281,21 +281,21 @@ We only give reward for collecting the diamond.
 Following are the five steps of Align-RUDDER applied to Minecraft:
 
 ![](assets/minecraft/five_steps_1_events_demos.png)
-Step \textbf{(I)}: Define events and map demonstrations into sequences of events. First, we extract the sequence of states from human demonstrations, transform images into 
+**Step (I):** Define events and map demonstrations into sequences of events. First, we extract the sequence of states from human demonstrations, transform images into 
 feature vectors using a pre-trained network and transform them into a sequence of consecutive state deltas (concatenating image feature vectors and inventory states). We cluster the resulting state deltas and remove clusters with a large number of members and merge smaller clusters. In the case of demonstrations for the \textit{ObtainDiamond} task in Minecraft the resulting clusters correspond to obtaining specific resources and items required to solve the task.
 Then we map the demonstrations to sequences of events.
 
 ![](assets/minecraft/five_steps_2_scoring.png)
-Step \textbf{(II)}: Construct a scoring matrix using event probabilities from demonstrations for diagonal elements and setting off-diagonal to a constant value. The scores in the diagonal position are proportional to the inverse of the event frequencies. Thus, aligning rare events has higher score. Darker colors signify higher score values.
+**Step (II):** Construct a scoring matrix using event probabilities from demonstrations for diagonal elements and setting off-diagonal to a constant value. The scores in the diagonal position are proportional to the inverse of the event frequencies. Thus, aligning rare events has higher score. Darker colors signify higher score values.
 
 ![](assets/minecraft/five_steps_3_msa.png)
-Step \textbf{(III)} Perform multiple sequence alignment (MSA) of the demonstrations. The MSA algorithm maximizes the pairwise sum of scores of all alignments. The score of an alignment at each position is given by the scoring matrix. As the off-diagonal entries are negative, the algorithm will always try to align an event to itself, while giving preference to events which give higher scores. 
+**Step (III)** Perform multiple sequence alignment (MSA) of the demonstrations. The MSA algorithm maximizes the pairwise sum of scores of all alignments. The score of an alignment at each position is given by the scoring matrix. As the off-diagonal entries are negative, the algorithm will always try to align an event to itself, while giving preference to events which give higher scores. 
 
 ![](assets/minecraft/five_steps_4_pssm.png)
-Step \textbf{(IV)} Compute a position-specific scoring matrix (PSSM). This matrix can be computed using the MSA (Step (III)) and the scoring matrix (Step (II)). Every column entry is for a position from the MSA. The score at a position (column) and for an event (row) depends on the frequency of that event at that position in the MSA. For example, the event in the last position is present in all the sequences, and thus gets a high score at the last position. But it is absent in the remaining position, and thus gets a score of zero elsewhere.
+**Step (IV)** Compute a position-specific scoring matrix (PSSM). This matrix can be computed using the MSA (Step (III)) and the scoring matrix (Step (II)). Every column entry is for a position from the MSA. The score at a position (column) and for an event (row) depends on the frequency of that event at that position in the MSA. For example, the event in the last position is present in all the sequences, and thus gets a high score at the last position. But it is absent in the remaining position, and thus gets a score of zero elsewhere.
 
 ![](assets/minecraft/five_steps_5_redistribution.png)
-Step \textbf{(V)} A new sequence is aligned step by step to the profile model using the PSSM, resulting in an alignment score for each sub-sequence. The redistributed reward is then proportional to the difference of scores of subsequent alignments.
+**Step (V)** A new sequence is aligned step by step to the profile model using the PSSM, resulting in an alignment score for each sub-sequence. The redistributed reward is then proportional to the difference of scores of subsequent alignments.
 
 
 With Align-RUDDER we tackled the <i>ObtainDiamond</i> task and managed to collect a diamond in 0.1% of the time over multiple runs and seeds with similar constrains as proposed by the challenge organizers.

@@ -297,7 +297,7 @@ Then we map the demonstrations to sequences of events.
 ![](assets/minecraft/five_steps_5_redistribution.png)
 **Step (V):** A new sequence is aligned step by step to the profile model using the PSSM, resulting in an alignment score for each sub-sequence. The redistributed reward is then proportional to the difference of scores of subsequent alignments.
 
-
+**Results on Minecraft:**
 With Align-RUDDER we tackled the <i>ObtainDiamond</i> task and managed to collect a diamond in 0.1% of the time over multiple runs and seeds with similar constrains as proposed by the challenge organizers.
 To put this in context, if one splits the <i>ObtainDiamond</i> task into 31 sub-tasks and assign a 50% success rate to each task, the resulting success probability to collect a diamond is approximately $$4.66 \times 10^{-10}$$.
 This is an one in two billion chance of success.
